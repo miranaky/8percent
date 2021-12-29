@@ -13,37 +13,31 @@ from apps.eightpercent.serializers import (
     TransactionSerializer,
     WithdrawSerializer,
 )
+from apps.eightpercent.utils import validate_date_type
 
 
 class AccountView(CreateModelMixin, ListModelMixin, GenericAPIView):
 
     queryset = None
     permission_class = [IsAuthenticated]
+    serializer_class = ReadAccountSerializer
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        account = self.get_queryset().first()
+        account = self.get_queryset()
         serializer = self.get_serializer(account)
         return Response(serializer.data)
 
-    def get_serializer_class(self):
-        if self.request.method == "GET":
-            return ReadAccountSerializer
-        elif self.request.method == "POST":
-            return ReadAccountSerializer
-
     def get_queryset(self):
         if self.request.method == "GET":
-            return Account.objects.filter(customer=self.request.user.id)
-        elif self.request.method == "POST":
-            return None
+            return Account.objects.filter(customer=self.request.user.id).first()
 
     def create(self, request, *args, **kwargs):
         has_account = Account.objects.filter(customer=request.user.id).first()
         if has_account is None:
-            serializer = self.get_serializer(data=request.data)
+            serializer = self.get_serializer(data={})
             if serializer.is_valid():
                 self.perform_create(serializer)
                 return Response(
@@ -56,7 +50,6 @@ class AccountView(CreateModelMixin, ListModelMixin, GenericAPIView):
         )
 
     def perform_create(self, serializer):
-
         serializer.save(customer=self.request.user, balance=0)
 
 
@@ -79,16 +72,19 @@ class TransactionView(ListAPIView):
 
         filter_kwargs = {"account": account_number}
 
-        if (transaction_type == "DEPOSIT") or (transaction_type == "WITHDRAW"):
+        if transaction_type in ("DEPOSIT", "WITHDRAW"):
             filter_kwargs["transaction_type"] = transaction_type
 
-        if (start_day is not None) and (end_day is not None):
-            filter_kwargs["transaction_date__gte"] = start_day
+        format = "%Y-%m-%d"
+        if all(
+            [validate_date_type(start_day, format), validate_date_type(end_day, format)]
+        ):
+            start_day = datetime.strptime(start_day, format)
             # add one day to end_day
-            strp_end_day = datetime.strptime(end_day, "%Y-%m-%d")
-            modified_day = strp_end_day + timedelta(days=1)
-            end_day = datetime.strftime(modified_day, "%Y-%m-%d")
-            filter_kwargs["transaction_date__lte"] = end_day
+            end_day = datetime.strptime(end_day, format) + timedelta(days=1)
+            if end_day > start_day:
+                filter_kwargs["transaction_date__gte"] = start_day
+                filter_kwargs["transaction_date__lte"] = end_day
 
         queryset = queryset.filter(**filter_kwargs)
 

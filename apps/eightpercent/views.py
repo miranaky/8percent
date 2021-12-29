@@ -76,7 +76,9 @@ class TransactionView(ListAPIView):
             filter_kwargs["transaction_type"] = transaction_type
 
         format = "%Y-%m-%d"
-        if all([validate_date_type(start_day, format), validate_date_type(end_day, format)]):
+        if all(
+            [validate_date_type(start_day, format), validate_date_type(end_day, format)]
+        ):
             start_day = datetime.strptime(start_day, format)
             # add one day to end_day
             end_day = datetime.strptime(end_day, format) + timedelta(days=1)

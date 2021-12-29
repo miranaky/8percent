@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+from django.db import transaction
+
 from rest_framework import mixins, status, viewsets
 from rest_framework.generics import CreateAPIView, GenericAPIView, ListAPIView
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
@@ -104,7 +106,8 @@ class DepositViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             data=request.data,
         )
         if serializer.is_valid():
-            self.perform_create(serializer)
+            with transaction.atomic():
+                self.perform_create(serializer)
             return Response(serializer.data)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -127,7 +130,8 @@ class WithdrawView(CreateAPIView):
             data=request.data,
         )
         if serializer.is_valid():
-            self.perform_create(serializer)
+            with transaction.atomic():
+                self.perform_create(serializer)
             return Response(serializer.data)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 

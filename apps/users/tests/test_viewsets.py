@@ -22,7 +22,6 @@ class TestUserViewSet:
 
         # Test signup success
         resp = no_auth_client.post(register_url, data=payload, format="json")
-        print(resp.data)
         assert resp.status_code == status.HTTP_201_CREATED
         assert login_resp_schema.is_valid(resp.json())
 

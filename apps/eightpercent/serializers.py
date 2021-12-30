@@ -54,7 +54,7 @@ class DepositSerializer(serializers.ModelSerializer):
 
 
 class WithdrawSerializer(ModelSerializer):
-    remaining_balance = SerializerMethodField()
+    account_balance = SerializerMethodField()
 
     class Meta:
         model = Transaction
@@ -63,11 +63,11 @@ class WithdrawSerializer(ModelSerializer):
             "transaction_amount",
             "description",
             "account",
-            "remaining_balance",
+            "account_balance",
         )
-        read_only_fields = ("transaction_type", "account", "remaining_balance")
+        read_only_fields = ("transaction_type", "account", "account_balance")
 
-    def get_remaining_balance(self, obj):
+    def get_account_balance(self, obj):
         return int(obj.account.balance)
 
     def validate(self, attrs):

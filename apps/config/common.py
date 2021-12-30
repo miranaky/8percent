@@ -239,9 +239,12 @@ class Common(Configuration):
         ],
         "DEFAULT_AUTHENTICATION_CLASSES": (
             "rest_framework.authentication.TokenAuthentication",
+            "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
         ),
     }
 
+
+REST_USE_JWT = True
 
 # Cookies
 CSRF_COOKIE_SECURE = False

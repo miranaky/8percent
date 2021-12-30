@@ -74,8 +74,8 @@ class TransactionView(ListAPIView):
 
         filter_kwargs = {"account": account_number}
 
-        if transaction_type in ("DEPOSIT", "WITHDRAW"):
-            filter_kwargs["transaction_type"] = transaction_type
+        if transaction_type in ("DEPOSIT", "WITHDRAW", "deposit", "withdraw"):
+            filter_kwargs["transaction_type"] = transaction_type.upper()
 
         format = "%Y-%m-%d"
         if all(
